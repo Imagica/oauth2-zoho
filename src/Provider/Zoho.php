@@ -100,7 +100,7 @@ class Zoho extends AbstractProvider
      *
      * @throws IdentityProviderException
      */
-    protected function checkResponse(ResponseInterface $response, $data)
+    protected function checkResponse(ResponseInterface $response, $data): void
     {
         // @codeCoverageIgnoreStart
         if (empty($data['error'])) {
