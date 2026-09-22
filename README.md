@@ -35,8 +35,12 @@ $provider = new Zoho([
     'clientId' => '{zoho-client-id}',
     'clientSecret' => '{zoho-client-secret}',
     'redirectUri' => 'http://localhost:8000/zoho/oauth2',
-    'dc' => 'AU' //It will be optional if your ZOHO are in US location
+    'dc' => 'AU' //Optional, defaults to US. Supported: US, AU, EU, IN, CN, JP, CA, SA
 ]);
+
+// The `dc` value is case insensitive. An unsupported value throws an
+// InvalidArgumentException from the constructor rather than silently
+// falling back to the US data centre.
 
 if (!isset($_GET['code'])) {
     // If we don't have an authorization code then get one
@@ -92,7 +96,7 @@ use League\OAuth2\Client\Grant\RefreshToken;
 $provider = new Zoho([
     'clientId' => '{zoho-client-id}',
     'clientSecret' => '{zoho-client-secret}',
-    'dc' => 'AU' //It will be optional if your ZOHO are in US location
+    'dc' => 'AU' //Optional, defaults to US. Supported: US, AU, EU, IN, CN, JP, CA, SA
 ]);
 
 $refreshToken = 'FromYourStoredData';

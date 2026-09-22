@@ -5,3 +5,7 @@ vendor
 coverage
 .DS_Store
 /.idea
+/CLAUDE.md
+/CLAUDE.local.md
+/.claude
+/.phpunit.result.cache

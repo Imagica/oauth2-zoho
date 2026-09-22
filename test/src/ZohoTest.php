@@ -7,13 +7,14 @@ use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Asad\OAuth2\Client\Provider\Zoho;
 use Asad\OAuth2\Client\AccessToken\ZohoAccessToken;
 use PHPUnit\Framework\TestCase;
+use GuzzleHttp\Psr7\Utils;
 use Mockery as m;
 
 class ZohoTest extends TestCase
 {
     protected $provider;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->provider = new Zoho([
             'clientId' => 'mock_client_id',
@@ -22,7 +23,7 @@ class ZohoTest extends TestCase
         ]);
     }
 
-    public function tearDown()
+    protected function tearDown(): void
     {
         m::close();
         parent::tearDown();
@@ -40,7 +41,7 @@ class ZohoTest extends TestCase
         $this->assertArrayHasKey('scope', $query);
         $this->assertArrayHasKey('approval_prompt', $query);
 
-        $this->assertAttributeNotEmpty('state', $this->provider);
+        $this->assertNotEmpty($this->provider->getState());
     }
 
     public function testBaseAccessTokenUrl()
@@ -110,7 +111,7 @@ class ZohoTest extends TestCase
 
         $response = Phony::mock('GuzzleHttp\Psr7\Response');
         $response->getHeader->returns(['application/json']);
-        $response->getBody->returns($error_json);
+        $response->getBody->returns(Utils::streamFor($error_json));
 
         $provider = Phony::partialMock(Zoho::class);
         $provider->getResponse->returns($response);
@@ -144,7 +145,7 @@ class ZohoTest extends TestCase
             'expires_in' => $live_time,
         ];
         $response = m::mock('Psr\Http\Message\ResponseInterface');
-        $response->shouldReceive('getBody')->andReturn(json_encode($response_json));
+        $response->shouldReceive('getBody')->andReturn(Utils::streamFor(json_encode($response_json)));
         $response->shouldReceive('getHeader')->andReturn(['content-type' => 'json']);
         $response->shouldReceive('getStatusCode')->andReturn(200);
         $client = m::mock('GuzzleHttp\ClientInterface');

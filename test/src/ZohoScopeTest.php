@@ -39,8 +39,10 @@ class ZohoScopeTest extends TestCase
         $this->assertArrayHasKey('scope', $query);
         $this->assertEquals('mock_access_type', $query['access_type']);
 
-        $this->assertContains('moc_user', $query['scope']);
-        $this->assertContains('moc_settings', $query['scope']);
-        $this->assertContains('moc_read', $query['scope']);
+        $scopes = explode(',', $query['scope']);
+
+        $this->assertContains('moc_user', $scopes);
+        $this->assertContains('moc_settings', $scopes);
+        $this->assertContains('moc_read', $scopes);
     }
 }
