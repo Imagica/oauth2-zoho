@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Asad\OAuth2\Client\Provider;
 
 use League\OAuth2\Client\Provider\AbstractProvider;
@@ -10,6 +12,7 @@ use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
 use League\OAuth2\Client\Token\AccessToken;
 use Asad\OAuth2\Client\AccessToken\ZohoAccessToken;
+use InvalidArgumentException;
 
 class Zoho extends AbstractProvider
 {
@@ -26,13 +29,37 @@ class Zoho extends AbstractProvider
         'EU' => 'https://accounts.zoho.eu',
         'IN' => 'https://accounts.zoho.in',
         'CN' => 'https://accounts.zoho.com.cn',
+        'JP' => 'https://accounts.zoho.jp',
+        'CA' => 'https://accounts.zohocloud.ca',
+        'SA' => 'https://accounts.zoho.sa',
     ];
 
     /**
-     * @var string define which data center you want to use
+     * @var string define which data center you want to use (defaults to US)
      * @link https://www.zoho.com/crm/developer/docs/api/multi-dc.html
      */
-    protected string $dc;
+    protected string $dc = 'US';
+
+    /**
+     * @param array $options
+     * @param array $collaborators
+     *
+     * @throws InvalidArgumentException if the given data centre is not supported
+     */
+    public function __construct(array $options = [], array $collaborators = [])
+    {
+        parent::__construct($options, $collaborators);
+
+        $this->dc = strtoupper($this->dc);
+
+        if (!isset($this->dcDomain[$this->dc])) {
+            throw new InvalidArgumentException(sprintf(
+                'Unknown Zoho data centre "%s". Supported data centres are: %s.',
+                $this->dc,
+                implode(', ', array_keys($this->dcDomain))
+            ));
+        }
+    }
 
     /**
      * Get authorization url to begin OAuth flow
@@ -41,8 +68,7 @@ class Zoho extends AbstractProvider
      */
     public function getBaseAuthorizationUrl(): string
     {
-        $dc = $this->dc && $this->dc == 'CN' ? $this->dc : 'US';
-        return $this->getDcDomain($dc) . '/oauth/v2/auth';
+        return $this->getDcDomain() . '/oauth/v2/auth';
     }
 
     /**
@@ -54,7 +80,7 @@ class Zoho extends AbstractProvider
      */
     public function getBaseAccessTokenUrl(array $params): string
     {
-        return $this->getDcDomain($this->dc) . '/oauth/v2/token';
+        return $this->getDcDomain() . '/oauth/v2/token';
     }
 
     /**
@@ -66,7 +92,7 @@ class Zoho extends AbstractProvider
      */
     public function getResourceOwnerDetailsUrl(AccessToken $token): string
     {
-        return 'https://accounts.zoho.com/oauth/user/info';
+        return $this->getDcDomain() . '/oauth/user/info';
     }
 
     /**
@@ -145,21 +171,14 @@ class Zoho extends AbstractProvider
     }
 
     /**
-     * You must use your domain-specific Zoho Accounts URL to generate access and refresh tokens
+     * You must use your domain-specific Zoho Accounts URL for every leg of the
+     * flow: authorization, token exchange and user info. The constructor has
+     * already checked that the data centre is one we know about.
+     *
      * @return string zoho data center url
      */
-
-    private function getDcDomain($dc): string
+    private function getDcDomain(): string
     {
-        return $dc && isset($this->dcDomain[$dc]) ? $this->dcDomain[$dc] : $this->fallbackDc();
-    }
-
-    /**
-     * The zoho default data center
-     * @return string zoho default data center url
-     */
-    private function fallbackDc(): string
-    {
-        return $this->dcDomain['US'];
+        return $this->dcDomain[$this->dc];
     }
 }
